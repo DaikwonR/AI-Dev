@@ -12,7 +12,7 @@ bool GOL::Initialize()
 	m_input.Initialize();
 	m_input.Update();
 
-	m_framebuffer = std::make_unique<Framebuffer>(m_renderer, m_renderer.m_width, m_renderer.m_height);
+	m_framebuffer = std::make_unique<Framebuffer>(m_renderer, m_renderer.m_width / 4, m_renderer.m_height / 4);
 	m_cellsA = std::make_unique<Cells<uint8_t>>(m_framebuffer->m_width, m_framebuffer->m_height);
 	m_cellsB = std::make_unique<Cells<uint8_t>>(m_framebuffer->m_width, m_framebuffer->m_height);
 
@@ -54,17 +54,35 @@ void GOL::Update()
 
 			// do the game of life rules
 			uint8_t currentState = currentCells->Read(x, y);
+			//if (currentState)
+			//{
+			//	// we are alive, stay alive if we have 2 or 3 neighbors, else DEAD!
+			//	uint8_t nextState = (count == 3 || count == 2) ? x : y;
+			//	nextCells->Write(x, y, nextState);
+			//}
+			//else
+			//{
+			//	// we are dead, make alive if we have 3 neighbors
+			//	
+			//	if (count == 3) nextCells->Write(x, y, 1);
+			//}
 			if (currentState)
 			{
-				// we are alive, stay alive if we have 2 or 3 neighbors, else DEAD!
-				uint8_t nextState = (count == 3 || count == 2) ? x : y;
-				nextCells->Write(x, y, nextState);
+				if (count < 2 || count > 3)
+				{
+					nextCells->Write(x, y, 0);
+				}
+				else if (count == 2 || count == 3)
+				{
+					nextCells->Write(x, y, 1);
+				}
 			}
 			else
 			{
-				// we are dead, make alive if we have 3 neighbors
-				
-				if (count == 3) nextCells->Write(x, y, 1);
+				if (count == 3)
+				{
+					nextCells->Write(x, y, 1);
+				}
 			}
 				
 			// nextCells->Write(x, y, 0/1)
@@ -73,6 +91,7 @@ void GOL::Update()
 
 	// write cells to the framebuffer
 	m_framebuffer->Clear(color_t{ 0, 0, 0, 255 });
+	
 	for (int i = 0; i < nextCells->m_data.size(); i++)
 	{
 		m_framebuffer->m_buffer[i] = (nextCells->m_data[i]) ? white : black;
@@ -82,7 +101,7 @@ void GOL::Update()
 
 void GOL::Draw()
 {
-
+	//m_framebuffer->Clear(color_t{ 0, 0, 0, 255 });
 
 	// update framebuffer
 	m_framebuffer->Update();
